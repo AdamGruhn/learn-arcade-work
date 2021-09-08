@@ -6,6 +6,9 @@ import arcade
 # Opening the window
 arcade.open_window(900, 600, "Colorado Flag")
 
+# Get ready to draw
+arcade.start_render()
+
 # Draw the stripes in the background
 arcade.draw_lrtb_rectangle_filled(0, 900, 600, 400, (0, 40, 104))
 arcade.draw_lrtb_rectangle_filled(0, 900, 400, 200, (255, 255, 255))
