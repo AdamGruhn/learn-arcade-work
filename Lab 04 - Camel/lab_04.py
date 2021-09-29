@@ -15,6 +15,7 @@ def main():
     player_thirst = 0
     camel_tiredness = 0
     canteen_drinks_left = 3
+    wrong = 0
 
     done = False
     while not done:
@@ -76,6 +77,14 @@ def main():
                 player_thirst = 0
             else:
                 print("You have no drinks left in your canteen.")
+
+        elif user_input.lower() != "a":
+            if wrong < 5:
+                wrong += 1
+                print("Not an option, try again")
+            elif wrong >= 5:
+                print("The heat got to your head, you no longer know what is happening or who you are and you die. :(")
+                break
 
         if player_thirst > 4:
             if player_thirst > 6:
