@@ -12,41 +12,44 @@ class Room:
 def main():
     room_list = []
     # Room 0 Outside
-    room = Room("You are outside of a mansion.\nHead North to enter.", 1, None, None, None, None, None)
+    room = Room("You are outside of a mansion.\nHead north to enter.", 1, None, None, None, None, None)
     room_list.append(room)
     # Room 1
-    room = Room("You are in the main hall.\nThere is a door to the North, East, and West.", 6, None, 3, 2, None, None)
+    room = Room("You are in the main hall.\nThere is a door to the north, east, and west.", 6, None, 3, 2, None, None)
     room_list.append(room)
     # Room 2
-    room = Room("You are in the dining room.\nThere is a door to the North and to the East.", 4, None, 1, None, None, None)
+    room = Room("You are in the dining room."
+                "\nThere is a door to the north and to the east.", 4, None, 1, None, None, None)
     room_list.append(room)
     # Room 3
-    room = Room("You are in the living room.\nThere is a door to the North and to the West.", 5, None, None, 1, None, None)
+    room = Room("You are in the living room."
+                "\nThere is a door to the north and to the west.", 5, None, None, 1, None, None)
     room_list.append(room)
     # Room 4
-    room = Room("You are in the kitchen.\nThere is a door to the South and to the East.", None, 2, 6, None, None, None)
+    room = Room("You are in the kitchen.\nThere is a door to the south and to the east.", None, 2, 6, None, None, None)
     room_list.append(room)
     # Room 5
-    room = Room("You are in the spare bedroom.\nThere is a door to the South and to the West.", None, 3, None, 6, None, None)
+    room = Room("You are in the spare bedroom."
+                "\nThere is a door to the south and to the west.", None, 3, None, 6, None, None)
     room_list.append(room)
     # Room 6
     room = Room("You are in the back hall."
-                "\nThere is a door the the South, East, and West."
+                "\nThere is a door the the south, east, and west."
                 "\nThere is also a staircase going down.", None, 1, 5, 4, None, 7)
     room_list.append(room)
     # Room 7
     room = Room("You are in the lobby of the basement."
-                "\nThere is a door to the South, East, and West."
+                "\nThere is a door to the south, east, and west."
                 "\nThere is also a staircase going up.", None, 10, 9, 8, 6, None)
     room_list.append(room)
     # Room 8
-    room = Room("You are in the master bedroom.\nThere is a door to the East.", None, None, 7, None, None, None)
+    room = Room("You are in the master bedroom.\nThere is a door to the east.", None, None, 7, None, None, None)
     room_list.append(room)
     # Room 9
-    room = Room("You are in the children's room.\nThere is a door to the West", None, None, None, 7, None, None)
+    room = Room("You are in the children's room.\nThere is a door to the west", None, None, None, 7, None, None)
     room_list.append(room)
     # Room 10
-    room = Room("You are in the lounge.\nThere is a door to the North.", 7, None, None, None, None, None)
+    room = Room("You are in the lounge.\nThere is a door to the north.", 7, None, None, None, None, None)
     room_list.append(room)
 
     current_room = 0
