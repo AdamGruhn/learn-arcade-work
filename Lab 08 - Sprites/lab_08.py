@@ -10,6 +10,7 @@ BEE_COUNT = FLY_COUNT // 2
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 
+
 class Bug(arcade.Sprite):
     def __init__(self, filename, sprite_scaling):
         super().__init__(filename, sprite_scaling)
@@ -94,25 +95,33 @@ class MyGame(arcade.Window):
         score = f"Score = {self.score}"
         arcade.draw_text(score, 10, 10, arcade.color.WHITE, 12)
 
+        if len(self.fly_list) <= 0:
+            arcade.draw_text("GAME OVER", 20, 350, arcade.color.BLACK, 90)
+
     def on_mouse_motion(self, x, y, dx, dy):
-        self.frog_sprite.center_x = x
-        self.frog_sprite.center_y = y
+        if len(self.fly_list) > 0:
+            self.frog_sprite.center_x = x
+            self.frog_sprite.center_y = y
+        else:
+            pass
 
     def update(self, delta_time):
-        self.fly_list.update()
-        self.bee_list.update()
+        if len(self.fly_list) > 0:
+            self.fly_list.update()
+            self.bee_list.update()
 
-        fly_hit_list = arcade.check_for_collision_with_list(self.frog_sprite, self.fly_list)
-        bee_hit_list = arcade.check_for_collision_with_list(self.frog_sprite, self.bee_list)
+            fly_hit_list = arcade.check_for_collision_with_list(self.frog_sprite, self.fly_list)
+            bee_hit_list = arcade.check_for_collision_with_list(self.frog_sprite, self.bee_list)
 
-        for fly in fly_hit_list:
-            fly.remove_from_sprite_lists()
+            for fly in fly_hit_list:
+                fly.remove_from_sprite_lists()
+                self.score += 1
 
-            self.score += 1
-
-        for bee in bee_hit_list:
-            bee.remove_from_sprite_lists()
-            self.score -= 1
+            for bee in bee_hit_list:
+                bee.remove_from_sprite_lists()
+                self.score -= 1
+        else:
+            pass
 
 
 def main():
