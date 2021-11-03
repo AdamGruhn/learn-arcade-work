@@ -7,6 +7,9 @@ SPRITE_SCALING_BEE = 0.35
 FLY_COUNT = random.randrange(20, 30)
 BEE_COUNT = FLY_COUNT // 2
 
+fly_hit_sound = arcade.load_sound("arcade_resources_sounds_coin4.wav")
+bee_hit_sound = arcade.load_sound("arcade_resources_sounds_error4.wav")
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
 
@@ -115,10 +118,12 @@ class MyGame(arcade.Window):
 
             for fly in fly_hit_list:
                 fly.remove_from_sprite_lists()
+                arcade.play_sound(fly_hit_sound)
                 self.score += 1
 
             for bee in bee_hit_list:
                 bee.remove_from_sprite_lists()
+                arcade.play_sound(bee_hit_sound)
                 self.score -= 1
         else:
             pass
