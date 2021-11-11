@@ -1,4 +1,5 @@
 """
+
 Sprites all from https://kenney.nl/assets/sokoban
 """
 
@@ -11,6 +12,8 @@ PLAYER_SCALING = .75
 COIN_SCALING = .5
 
 NUMBER_OF_COINS = random.randrange(15, 25)
+# Sound taken from https://api.arcade.academy/en/latest/resources.html
+COIN_COLLECT_SOUND = arcade.load_sound("arcade_resources_sounds_coin2.wav")
 
 DEFAULT_SCREEN_WIDTH = 800
 DEFAULT_SCREEN_HEIGHT = 600
@@ -144,11 +147,12 @@ class MyGame(arcade.Window):
         # Set the background color
         arcade.set_background_color(arcade.color.AMAZON)
 
+        self.score = 0
+
     def on_draw(self):
-        # This command has to happen before we start drawing
         arcade.start_render()
 
-        # Select the camera we'll use to draw all our sprites
+        # Select the camera to draw all sprites
         self.camera_sprites.use()
 
         # Draw all the sprites.
@@ -165,9 +169,10 @@ class MyGame(arcade.Window):
                                      self.width,
                                      40,
                                      arcade.color.ALMOND)
-        text = f"Scroll value: ({self.camera_sprites.position[0]:5.1f}, " \
-               f"{self.camera_sprites.position[1]:5.1f})"
+        text = f"Score = {self.score}"
         arcade.draw_text(text, 10, 10, arcade.color.BLACK_BEAN, 20)
+        if len(self.coin_list) <= 0:
+            arcade.draw_text("GAME OVER", 20, 350, arcade.color.BLACK, 90)
 
     def on_key_press(self, key, modifiers):
         """Called whenever a key is pressed. """
@@ -191,13 +196,22 @@ class MyGame(arcade.Window):
 
     def on_update(self, delta_time):
         """ Movement and game logic """
+        if len(self.coin_list) > 0:
 
-        # Call update on all sprites (The sprites don't do much in this
-        # example though.)
-        self.physics_engine.update()
+            self.physics_engine.update()
 
-        # Scroll the screen to the player
-        self.scroll_to_player()
+            # Scroll the screen to the player
+            self.scroll_to_player()
+
+            coin_hit_list = arcade.check_for_collision_with_list(self.player_sprite, self.coin_list)
+
+            for coin in coin_hit_list:
+                coin.remove_from_sprite_lists()
+                arcade.play_sound(COIN_COLLECT_SOUND)
+                self.score += 1
+        else:
+            pass
+
 
     def scroll_to_player(self):
         """
