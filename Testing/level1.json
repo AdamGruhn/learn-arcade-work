@@ -1,0 +1,33 @@
+{ "backgroundcolor":"#99cfff",
+ "compressionlevel":-1,
+ "height":10,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 41, 52, 52, 52, 52, 52, 42, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39, 52, 40, 0, 0, 0, 0, 0, 0, 0, 39, 52, 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 52, 52, 52, 52, 52, 49, 0, 0, 0, 0, 51, 52, 52, 52, 44, 37, 37, 37, 37, 37, 43, 52, 52, 52, 53],
+         "height":10,
+         "id":1,
+         "name":"Walls",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":15,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":2,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"right-down",
+ "tiledversion":"1.7.1",
+ "tileheight":128,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"platformer tiles.json"
+        }],
+ "tilewidth":128,
+ "type":"map",
+ "version":"1.6",
+ "width":15
+}
