@@ -111,7 +111,7 @@ class MyGame(arcade.Window):
                 elif self.grid[row][column] == 0:
                     continuous_count = 0
             if longest_chain > 2:
-                print(f"There are {longest_chain} continuous blocks selected on row {row}")
+                print(f"There are {longest_chain} continuous blocks selected on row {row}.")
             print(f"Row {row} has {green_count_rows} cells selected.")
 
         for column in range(COLUMN_COUNT):
