@@ -7,7 +7,7 @@ grid on-screen.
 import arcade
 
 # Set how many rows and columns we will have
-ROW_COUNT = 10
+ROW_COUNT = 20
 COLUMN_COUNT = 10
 
 # This sets the WIDTH and HEIGHT of each grid location
