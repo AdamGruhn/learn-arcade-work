@@ -171,7 +171,7 @@ class MyGame(arcade.Window):
                     sprite.append_texture(texture)
                 sprite.set_texture(0)
                 sprite.center_x = (MARGIN + SIZE) * column + MARGIN + SIZE // 2
-                sprite.center_y = (MARGIN + SIZE) * row + MARGIN + SIZE // 2
+                sprite.center_y = SCREEN_HEIGHT - (MARGIN + SIZE) * row + MARGIN + SIZE // 2
 
                 self.board_sprite_list.append(sprite)
         self.new_tile()
@@ -268,7 +268,7 @@ class MyGame(arcade.Window):
                 if grid[row][column]:
                     color = colors[grid[row][column]]
                     x = (MARGIN + SIZE) * (column + offset_x) + MARGIN + SIZE // 2
-                    y = SCREEN_HEIGHT - (MARGIN + SIZE) * (row + offset_y) + SIZE // 2
+                    y = SCREEN_HEIGHT - (MARGIN + SIZE) * (row + offset_y) + MARGIN + SIZE // 2
 
                     arcade.draw_rectangle_filled(x, y, SIZE, SIZE, color)
 
