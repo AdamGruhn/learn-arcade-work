@@ -3,3 +3,39 @@ Adam Gruhn
 
                         Quantitative Reasoning Reflection
 
+In some cases, using different methods to do the same thing is going to be more
+efficient. An example of being more efficient with the same thing would be with
+my drawing a picture lab and drawing using functions lab. When making the waves,
+it is much easier to create functions that I can just call to make the waves
+and birds in the drawing. Loops can also make things easier, as in the array
+backed grids. If I had to make each tile on its own it would be extremely
+long and tedious, when a couple nested for loops makes it very simple.
+
+I like to write out in the definitions of functions what the functions do,
+especially if it isn't immediately obvious in the function name. In my final
+lab, for example, in the rotate_clockwise and rotate_couterclockwise functions,
+I drew a sort of picture in triple quotes to help better visualize. Sometimes
+writing what a specific part of a function does instead of the function as a
+whole also helps understand functions better. It can also help understand
+how the functions connect to each other.
+
+Often times I can just look down in the run tab at the bottom and see where the
+code broke at. Understanding how the functions interact can help trace back to
+where the issue is originating. Putting print statements in different areas
+saying different things to see if the parts of the code are being called at all
+also really helps. One error I had that didn't show up in either of these cases
+was in my final lab, it would keep the information for the tiles in the correct
+spot but drew them at the top of the screen instead of the bottom. What I did
+for this was just went through my code and checked each part of my code that
+drew something to see if it was drawing things properly.
+
+There are a lot more variables to account for than just test scores or
+statistics. For instance, how would an algorithm grade speeches that are
+presented over different topics. How could they judge an athlete that is just
+coming off of an injury when compared to an athlete that is completely healthy.
+In running sports, weather and course difficulty also play a very large role in
+how the athlete does on the day. There are just too many factors that have to
+be taken into consideration that an algorithm would have to account for. Even if
+they did account for all the possible factors, the amount of effort that the
+algorithm would have to put in would destroy the computer.
+

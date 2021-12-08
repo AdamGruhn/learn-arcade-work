@@ -10,7 +10,7 @@ https://api.arcade.academy/en/latest/examples/tetris.html#tetris
 """
 To Do
 
-Figure out why the pieces appear at the top of the screen
+DONE DONE Figure out why the pieces appear at the top of the screen
 Make the screen larger than just the play area
 Make the bottom layer of 1's below the screen
 
