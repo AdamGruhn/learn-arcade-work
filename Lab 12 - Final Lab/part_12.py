@@ -3,28 +3,38 @@ import random
 import PIL
 """
 Final Project
-Plan to make a tetris game
+Tetris game
 Matrix work from
 https://api.arcade.academy/en/latest/examples/tetris.html#tetris
+
+For scoring calculations I used 
+https://tetris.fandom.com/wiki/Scoring
 """
 """
 To Do
 
 DONE DONE Figure out why the pieces appear at the top of the screen
-Make the screen larger than just the play area
-Make the bottom layer of 1's below the screen
+DONE DONE Make the screen larger than just the play area
+DONE DONE Make the bottom layer of 1's below the screen
+DONE DONE Make the bottom layer of 1's be DARK_GRAY without changing the colors of the tiles
 
-Game Over Screen
-Add a scoring system
-Add a level system
+DONE DONE Game Over Screen
+DONE DONE Add a scoring system
+DONE DONE Add a level system
+DONE DONE Able to pause
+DONE DONE Able to unpause
+DONE DONE Line Clear Counter
+Start screen with level selects - Sprites to click to select start level instead of typing
 Add a next box
+Counter for number of times each piece appeared
+Sound effects on line clears
+Create a leaderboard system at some point?
 
-Made the speed scale with level
-https://harddrop.com/wiki/Tetris_(NES,_Nintendo)
+DONE DONE Made the speed scale with level
 
 """
 # Set how many rows and columns we will have
-ROW_COUNT = 20
+ROW_COUNT = 21
 COLUMN_COUNT = 10
 # This sets the WIDTH and HEIGHT of each grid location
 # Only one variable because they are squares
@@ -33,18 +43,22 @@ SIZE = 30
 # and on the edges of the screen.
 MARGIN = 5
 # Do the math to figure out the play screen dimensions
-SCREEN_WIDTH = (SIZE + MARGIN) * COLUMN_COUNT + MARGIN
-SCREEN_HEIGHT = (SIZE + MARGIN) * ROW_COUNT + MARGIN
+PLAY_SCREEN_WIDTH = (SIZE + MARGIN) * COLUMN_COUNT + MARGIN
+PLAY_SCREEN_HEIGHT = (SIZE + MARGIN) * ROW_COUNT + MARGIN
+SCREEN_HEIGHT = (SIZE + MARGIN) * (ROW_COUNT + 3) + MARGIN
+SCREEN_WIDTH = 3 * PLAY_SCREEN_WIDTH
+
 
 # Colors in order L, I, T, S, Z, O, J
-colors = [arcade.color.BLACK,
+colors = [arcade.color.DARK_GRAY,
           arcade.color.PURPLE,
-          arcade.color.RED,
+          arcade.color.DARK_RED,
           arcade.color.YELLOW,
           arcade.color.GREEN,
           arcade.color.CYAN,
           arcade.color.BLUE,
-          arcade.color.WHITE]
+          arcade.color.WHITE,
+          arcade.color.BLACK]
 
 # Making the shapes in their own matrices
 # Same order, L, I, T, S, Z, O, J
@@ -129,7 +143,7 @@ def new_board():
     # Creates grid of 0's
     board = [[0 for _x in range(COLUMN_COUNT)] for _y in range(ROW_COUNT)]
     # Creates row of 1's at the bottom
-    board += [[1 for _x in range(COLUMN_COUNT)]]
+    board += [[8 for _x in range(COLUMN_COUNT)]]
     return board
 
 
@@ -138,31 +152,48 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
-        arcade.set_background_color(arcade.color.DARK_GRAY)
+        arcade.set_background_color(arcade.color.BLACK)
 
         self.board = None
         self.frame_count = 0
         self.game_over = False
-        self.paused = False
+        self.paused = 1
         self.board_sprite_list = None
 
         self.tile = None
         self.tile_x = 0
         self.tile_y = 0
 
+        self.next_tile = random.choice(TETROMINOES)
+        self.next_tile_x = 0
+        self.next_tile_y = 0
+
+        self.line_clears = 0
+        # Player can select the level they start on
+        self.start_level = int(input("What level do you want to start on? "))
+        self.current_level = self.start_level
+
+        self.score = 0
+        self.piece_clear = 0
+
     def new_tile(self):
         # Randomly picks new tile and set location to top. Game over if
         # immediately collides
-        self.tile = random.choice(TETROMINOES)
+        self.tile = self.next_tile
         self.tile_x = int(COLUMN_COUNT / 2 - len(self.tile[0]) / 2)
         self.tile_y = 0
+        # Makes a tile that I can display in the "Next Box"
+        self.next_tile = random.choice(TETROMINOES)
+        print(self.next_tile)
 
         if check_collision(self.board, self.tile, (self.tile_x, self.tile_y)):
             self.game_over = True
 
     def setup(self):
+        """
+        Draws the grid in the background
+        """
         self.board = new_board()
-
         self.board_sprite_list = arcade.SpriteList()
         for row in range(len(self.board)):
             for column in range(len(self.board[0])):
@@ -170,10 +201,11 @@ class MyGame(arcade.Window):
                 for texture in texture_list:
                     sprite.append_texture(texture)
                 sprite.set_texture(0)
-                sprite.center_x = (MARGIN + SIZE) * column + MARGIN + SIZE // 2
-                sprite.center_y = SCREEN_HEIGHT - (MARGIN + SIZE) * row + MARGIN + SIZE // 2
+                sprite.center_x = PLAY_SCREEN_WIDTH + (MARGIN + SIZE) * column + MARGIN + SIZE // 2
+                sprite.center_y = PLAY_SCREEN_HEIGHT - (MARGIN + SIZE) * (row + 1) + MARGIN + SIZE // 2
 
                 self.board_sprite_list.append(sprite)
+
         self.new_tile()
         self.update_board()
 
@@ -182,8 +214,9 @@ class MyGame(arcade.Window):
         Pieces fall
         If collision, join matrices
         """
-        if not self.game_over and not self.paused:
+        if not self.game_over and self.paused != -1:
             self.tile_y += 1
+            self.piece_clear = 0
             if check_collision(self.board, self.tile, (self.tile_x,
                                                        self.tile_y)):
                 self.board = join_matrices(self.board, self.tile,
@@ -193,9 +226,31 @@ class MyGame(arcade.Window):
                     for i, row in enumerate(self.board[:-1]):
                         if 0 not in row:
                             self.board = remove_row(self.board, i)
+                            self.line_clears += 1
+                            self.piece_clear += 1
+
                             break
                     else:
                         break
+                if self.piece_clear == 4:
+                    self.score += (self.current_level + 1) * 1200
+                    # Each of these if statements makes it so that you
+                    # Don't reach a new level until your line count is high enough
+                    if self.line_clears >= self.start_level:
+                        self.current_level = self.start_level + self.line_clears // 10
+                if self.piece_clear == 3:
+                    self.score += (self.current_level + 1) * 300
+                    if self.line_clears >= self.start_level:
+                        self.current_level = self.start_level + self.line_clears // 10
+                if self.piece_clear == 2:
+                    self.score += (self.current_level + 1) * 100
+                    if self.line_clears >= self.start_level:
+                        self.current_level = self.start_level + self.line_clears // 10
+                if self.piece_clear == 1:
+                    self.score += (self.current_level + 1) * 40
+                    if self.line_clears >= self.start_level:
+                        self.current_level = self.start_level + self.line_clears // 10
+
                 self.update_board()
                 self.new_tile()
 
@@ -203,7 +258,7 @@ class MyGame(arcade.Window):
         """
         Rotate tile clockwise and check for collision
         """
-        if not self.game_over and not self.paused:
+        if not self.game_over and self.paused != -1:
             new_tile = rotate_clockwise(self.tile)
             if self.tile_x + len(new_tile[0]) >= COLUMN_COUNT:
                 self.tile_x = COLUMN_COUNT - len(new_tile[0])
@@ -215,7 +270,7 @@ class MyGame(arcade.Window):
         """
         Rotate tile counterclockwise and check for collision
         """
-        if not self.game_over and not self.paused:
+        if not self.game_over and self.paused != -1:
             new_tile = rotate_counterclockwise(self.tile)
             if self.tile_x + len(new_tile[0]) >= COLUMN_COUNT:
                 self.tile_x = COLUMN_COUNT - len(new_tile[0])
@@ -224,14 +279,20 @@ class MyGame(arcade.Window):
                 self.tile = new_tile
 
     def on_update(self, dt):
-        """Piece moves every 1/6 of a second"""
+        """Basically the game speed"""
         self.frame_count += 1
-        if self.frame_count % 10 == 0:
-            self.fall()
+        # Speed scales with each level that you are on
+        if self.current_level <= 58:
+            if self.frame_count % (59 // (self.current_level + 1)) == 0:
+                self.fall()
+        # When current level is larger than 58 it divides by 0 and breaks
+        elif self.current_level > 58:
+            if self.frame_count % 1 == 0:
+                self.fall()
 
     def move_x(self, delta_x):
         """Move tile left or right"""
-        if not self.game_over and not self.paused:
+        if not self.game_over and self.paused != -1:
             new_x = self.tile_x + delta_x
             if new_x < 0:
                 new_x = 0
@@ -247,16 +308,18 @@ class MyGame(arcade.Window):
         Clockwise and counter rotation
         Drop down
         """
-        if key == arcade.key.NUM_4:
+        if key == arcade.key.LEFT or key == arcade.key.A:
             self.move_x(-1)
-        elif key == arcade.key.NUM_6:
+        elif key == arcade.key.RIGHT or key == arcade.key.D:
             self.move_x(1)
-        elif key == arcade.key.NUM_8:
+        elif key == arcade.key.J:
             self.rotate_tile_counterclockwise()
-        elif key == arcade.key.NUM_2:
+        elif key == arcade.key.UP or key == arcade.key.L:
             self.rotate_tile_clockwise()
-        elif key == arcade.key.NUM_5:
+        elif key == arcade.key.DOWN or key == arcade.key.S:
             self.fall()
+        elif key == arcade.key.P:
+            self.paused *= -1
 
     def draw_grid(self, grid, offset_x, offset_y):
         """
@@ -267,10 +330,19 @@ class MyGame(arcade.Window):
                 # Assigns colors
                 if grid[row][column]:
                     color = colors[grid[row][column]]
-                    x = (MARGIN + SIZE) * (column + offset_x) + MARGIN + SIZE // 2
-                    y = SCREEN_HEIGHT - (MARGIN + SIZE) * (row + offset_y) + MARGIN + SIZE // 2
+                    x = PLAY_SCREEN_WIDTH + (MARGIN + SIZE) * (column + offset_x) + MARGIN +\
+                        SIZE // 2
+                    y = PLAY_SCREEN_HEIGHT - (MARGIN + SIZE) * (row + offset_y + 1) +\
+                        MARGIN + SIZE // 2
 
                     arcade.draw_rectangle_filled(x, y, SIZE, SIZE, color)
+
+    # def draw_next(self, grid, offset_x, offset_y):
+    #     for row in range(len(grid)):
+    #         for column in range(len(grid[0])):
+    #             if grid[row][column]:
+    #                 color = colors[grid[row][column]]
+    #                 x =
 
     def update_board(self):
         for row in range(len(self.board)):
@@ -282,7 +354,58 @@ class MyGame(arcade.Window):
     def on_draw(self):
         arcade.start_render()
         self.board_sprite_list.draw()
+        # Draws the falling tiles
         self.draw_grid(self.tile, self.tile_x, self.tile_y)
+        # Draws the tiles in the next box
+        # self.draw_next(self.next_tile, self.next_tile_x, self.next_tile_y)
+        self.draw_counters()
+
+    def draw_counters(self):
+        """
+        Boxes with different stats
+        """
+        # Line clear counter
+        arcade.draw_text(f"Lines: {self.line_clears}",
+                         2 * SCREEN_WIDTH / 5,
+                         PLAY_SCREEN_HEIGHT - 3 * MARGIN + 2 * SIZE,
+                         arcade.color.WHITE,
+                         30, bold=True)
+
+        # Level counter
+        arcade.draw_text("Level:",
+                         2 * PLAY_SCREEN_WIDTH + SIZE,
+                         PLAY_SCREEN_HEIGHT - 6 * SIZE - 5 * MARGIN,
+                         arcade.color.WHITE,
+                         30, bold=True)
+        arcade.draw_text(f"{self.current_level}",
+                         2 * PLAY_SCREEN_WIDTH + SIZE,
+                         PLAY_SCREEN_HEIGHT - 7 * SIZE - 7 * MARGIN,
+                         arcade.color.WHITE,
+                         30, bold=True)
+
+        # Scoreboard
+        arcade.draw_text("Score:",
+                         2 * PLAY_SCREEN_WIDTH + SIZE,
+                         PLAY_SCREEN_HEIGHT - 3 * SIZE - 2 * MARGIN,
+                         arcade.color.WHITE,
+                         30, bold=True)
+        arcade.draw_text(f"{self.score}",
+                         2 * PLAY_SCREEN_WIDTH + SIZE,
+                         PLAY_SCREEN_HEIGHT - 4 * SIZE - 4 * MARGIN,
+                         arcade.color.WHITE,
+                         30, bold=True)
+
+        if self.game_over:
+            arcade.draw_text("GAME",
+                             PLAY_SCREEN_WIDTH - SIZE - MARGIN,
+                             SCREEN_HEIGHT / 2,
+                             arcade.color.RED,
+                             100, bold=True)
+            arcade.draw_text("OVER",
+                             PLAY_SCREEN_WIDTH - SIZE - MARGIN,
+                             SCREEN_HEIGHT / 2 - 150,
+                             arcade.color.RED,
+                             100, bold=True)
 
 
 def main():
