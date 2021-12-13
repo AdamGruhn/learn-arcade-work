@@ -195,7 +195,7 @@ class LevelSelectView(arcade.View):
                 game_view = GameView(level)
                 game_view.setup()
                 self.window.show_view(game_view)
-        elif 1 < column < 4 and row == -1:
+        elif 0 < column < 4 and row == -1:
             game_view = InstructionView()
             self.window.show_view(game_view)
 
