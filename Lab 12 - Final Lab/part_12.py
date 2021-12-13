@@ -9,7 +9,7 @@ https://api.arcade.academy/en/latest/examples/tetris.html#tetris
 For scoring calculations I used 
 https://tetris.fandom.com/wiki/Scoring
 """
-# Loading sounds
+# Loading sounds all from arcade.academy
 PIECE_HIT_SOUND = arcade.load_sound("arcade_resources_sounds_rockHit2.wav")
 TETRIS_SOUND = arcade.load_sound("arcade_resources_sounds_upgrade4.wav")
 LINE_CLEAR_SOUND = arcade.load_sound("arcade_resources_sounds_upgrade1.wav")
@@ -164,10 +164,16 @@ class LevelSelectView(arcade.View):
 
                 # Draw the number in the boxes
                 arcade.draw_text(f"{5 * (-row + 1) + column}",
-                                 x - 2 * MARGIN,
-                                 y - 2 * MARGIN,
+                                 x, y,
                                  arcade.color.BLACK,
-                                 30, bold=True)
+                                 30, bold=True, anchor_y="center", anchor_x="center")
+
+        a = (MARGIN + LEVEL_SELECT_SIZE) * 2 + MARGIN + LEVEL_SELECT_SIZE / 2 + SCREEN_WIDTH / 6
+        b = (MARGIN + LEVEL_SELECT_SIZE) * -1 + MARGIN + LEVEL_SELECT_SIZE / 2 + SCREEN_HEIGHT / 4
+        arcade.draw_rectangle_filled(a, b, 3 * LEVEL_SELECT_SIZE + 2 * MARGIN, LEVEL_SELECT_SIZE, color)
+        arcade.draw_text("Instructions", a, b,
+                         arcade.color.BLACK, 30,
+                         bold=True, anchor_y="center", anchor_x="center")
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
@@ -189,6 +195,50 @@ class LevelSelectView(arcade.View):
                 game_view = GameView(level)
                 game_view.setup()
                 self.window.show_view(game_view)
+        elif 1 < column < 4 and row == -1:
+            game_view = InstructionView()
+            self.window.show_view(game_view)
+
+
+class InstructionView(arcade.View):
+    def __init__(self):
+        super().__init__()
+
+    def on_draw(self):
+        arcade.start_render()
+        arcade.draw_text(" How to play: ",
+                         SCREEN_WIDTH / 2,
+                         5 * SCREEN_HEIGHT / 6,
+                         arcade.color.WHITE,
+                         60, anchor_x="center", anchor_y="center")
+        arcade.draw_text("Left and right arrow keys move left and right, "
+                         "the down arrow key speeds up the piece, "
+                         "and the up arrow key rotates the piece clockwise.",
+                         SCREEN_WIDTH / 2,
+                         4 * SCREEN_HEIGHT / 6,
+                         arcade.color.WHITE, 30,
+                         anchor_x="center", anchor_y="center", multiline=True,
+                         width=(2 * PLAY_SCREEN_WIDTH))
+        arcade.draw_text("Other controls are the A and D keys to move left and right, "
+                         "the S key to speed up the piece, "
+                         "the J key rotates counter clockwise and the L key rotates clockwise.",
+                         SCREEN_WIDTH / 2,
+                         5 * SCREEN_HEIGHT / 12,
+                         arcade.color.WHITE, 30,
+                         anchor_x="center", anchor_y="center", multiline=True,
+                         width=(2 * PLAY_SCREEN_WIDTH))
+        arcade.draw_text("Pressing the space bar pauses the game, "
+                         "press space and select a level to start playing.",
+                         SCREEN_WIDTH / 2,
+                         1 * SCREEN_HEIGHT / 6,
+                         arcade.color.WHITE, 30,
+                         anchor_x="center", anchor_y="center", multiline=True,
+                         width=(2 * PLAY_SCREEN_WIDTH))
+
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.SPACE:
+            game_view = LevelSelectView()
+            self.window.show_view(game_view)
 
 
 class GameOverView(arcade.View):
@@ -207,10 +257,15 @@ class GameOverView(arcade.View):
                          2 * SCREEN_HEIGHT / 5,
                          arcade.color.RED,
                          100, bold=True, anchor_x="center", anchor_y="center")
+        arcade.draw_text(" Press SPACE to play again. ",
+                         SCREEN_WIDTH / 2,
+                         SCREEN_HEIGHT / 5, arcade.color.WHITE,
+                         50, anchor_x="center", anchor_y="center")
 
-    def on_mouse_press(self, x, y, button, modifiers):
-        game_view = LevelSelectView()
-        self.window.show_view(game_view)
+    def on_key_press(self, key, modifiers):
+        if key == arcade.key.SPACE:
+            game_view = LevelSelectView()
+            self.window.show_view(game_view)
 
 
 class GameView(arcade.View):
@@ -223,7 +278,7 @@ class GameView(arcade.View):
         self.board = None
         self.frame_count = 0
         self.game_over = False
-        self.paused = 1
+        self.paused = -1
         self.board_sprite_list = None
         self.down_pressed = False
         self.down_timer = 0
@@ -402,7 +457,7 @@ class GameView(arcade.View):
         elif key == arcade.key.DOWN or key == arcade.key.S:
             self.down_pressed = True
             self.down_timer = 0
-        elif key == arcade.key.P:
+        elif key == arcade.key.SPACE:
             self.paused *= -1
 
     def on_key_release(self, key, modifiers):
