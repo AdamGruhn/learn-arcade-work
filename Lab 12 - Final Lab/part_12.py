@@ -516,31 +516,31 @@ class GameView(arcade.View):
         Boxes with different stats
         """
         # Line clear counter
-        arcade.draw_text(f"Lines: {self.line_clears}",
+        arcade.draw_text(f" Lines: {self.line_clears} ",
                          SCREEN_WIDTH / 2,
                          PLAY_SCREEN_HEIGHT - 2 * (MARGIN - SIZE),
                          arcade.color.WHITE,
                          SIZE, bold=True, anchor_x="center")
 
         # Level counter
-        arcade.draw_text("Level:",
+        arcade.draw_text(" Level: ",
                          2.5 * PLAY_SCREEN_WIDTH,
                          PLAY_SCREEN_HEIGHT - 6 * SIZE - 5 * MARGIN,
                          arcade.color.WHITE,
                          SIZE, bold=True, anchor_x="center")
-        arcade.draw_text(f"{self.current_level}",
+        arcade.draw_text(f" {self.current_level} ",
                          2.5 * PLAY_SCREEN_WIDTH + 2 * SIZE,
                          PLAY_SCREEN_HEIGHT - 7 * SIZE - 7 * MARGIN,
                          arcade.color.WHITE,
                          SIZE, bold=True, anchor_x="right")
 
         # Scoreboard
-        arcade.draw_text("Score:",
+        arcade.draw_text(" Score: ",
                          2.5 * PLAY_SCREEN_WIDTH,
                          PLAY_SCREEN_HEIGHT - 3 * SIZE - 2 * MARGIN,
                          arcade.color.WHITE,
                          SIZE, bold=True, anchor_x="center")
-        arcade.draw_text(f"{self.score}",
+        arcade.draw_text(f" {self.score} ",
                          2.5 * PLAY_SCREEN_WIDTH + 2 * SIZE,
                          PLAY_SCREEN_HEIGHT - 4 * SIZE - 4 * MARGIN,
                          arcade.color.WHITE,
