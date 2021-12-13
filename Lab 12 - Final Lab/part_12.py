@@ -6,19 +6,14 @@ Final Project
 Tetris game
 Matrix work from
 https://api.arcade.academy/en/latest/examples/tetris.html#tetris
-
 For scoring calculations I used 
 https://tetris.fandom.com/wiki/Scoring
 """
-"""
-To Do
-
-Start screen with level selects - Sprites to click to select start level instead of typing
-Sound effects on line clears
-Counter for number of times each piece appeared
-Slight delay after line clears
-Create a leaderboard system at some point?
-"""
+# Loading sounds
+PIECE_HIT_SOUND = arcade.load_sound("arcade_resources_sounds_rockHit2.wav")
+TETRIS_SOUND = arcade.load_sound("arcade_resources_sounds_upgrade4.wav")
+LINE_CLEAR_SOUND = arcade.load_sound("arcade_resources_sounds_upgrade1.wav")
+GAME_OVER_SOUND = arcade.load_sound("arcade_resources_sounds_gameover2.wav")
 # Set how many rows and columns we will have and how big each square will be
 ROW_COUNT = 21
 COLUMN_COUNT = 10
@@ -26,8 +21,9 @@ SIZE = 30
 # This sets the margin between each cell and edge of the screen
 MARGIN = 5
 # How many different levels to choose to start from
-START_LEVELS = 10
-LEVEL_SELECT_SIZE = SIZE * 2 + MARGIN
+START_LEVELS_ROWS = 2
+START_LEVELS_COLUMNS = 5
+LEVEL_SELECT_SIZE = 2 * (SIZE * 2 + MARGIN)
 # Do the math to figure out the play screen dimensions and window dimensions
 PLAY_SCREEN_WIDTH = (SIZE + MARGIN) * COLUMN_COUNT + MARGIN
 PLAY_SCREEN_HEIGHT = (SIZE + MARGIN) * ROW_COUNT + MARGIN
@@ -131,10 +127,96 @@ def new_board():
     return board
 
 
-class MyGame(arcade.Window):
+class LevelSelectView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.window.set_mouse_visible(True)
+        self.grid = []
+        for row in range(START_LEVELS_ROWS):
+            self.grid.append([])
+            for column in range(START_LEVELS_COLUMNS):
+                self.grid[row].append(0)
+        arcade.set_background_color(arcade.color.BLACK)
+
+    def on_draw(self):
+        arcade.start_render()
+
+        # Draw TETRIS and ask what level the player wants to start on
+        arcade.draw_text("TETRIS",
+                         SCREEN_WIDTH / 2,
+                         PLAY_SCREEN_HEIGHT - SIZE,
+                         arcade.color.WHITE,
+                         100, anchor_x="center")
+        arcade.draw_text("Select a level to start on:",
+                         SCREEN_WIDTH / 2,
+                         2 * SCREEN_HEIGHT / 3,
+                         arcade.color.WHITE,
+                         50, anchor_x="center")
+
+        for row in range(START_LEVELS_ROWS):
+            for column in range(START_LEVELS_COLUMNS):
+                color = arcade.color.WHITE
+                x = (MARGIN + LEVEL_SELECT_SIZE) * column + MARGIN + LEVEL_SELECT_SIZE / 2 + SCREEN_WIDTH / 6
+                y = (MARGIN + LEVEL_SELECT_SIZE) * row + MARGIN + LEVEL_SELECT_SIZE / 2 + SCREEN_HEIGHT / 4
+
+                # Draw the box
+                arcade.draw_rectangle_filled(x, y, LEVEL_SELECT_SIZE, LEVEL_SELECT_SIZE, color)
+
+                # Draw the number in the boxes
+                arcade.draw_text(f"{5 * (-row + 1) + column}",
+                                 x - 2 * MARGIN,
+                                 y - 2 * MARGIN,
+                                 arcade.color.BLACK,
+                                 30, bold=True)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        """
+        Called when the user presses a mouse button.
+        """
+
+        # Change the x/y screen coordinates to grid coordinates
+        column = (x - PLAY_SCREEN_WIDTH // 2) // (LEVEL_SELECT_SIZE + MARGIN)
+        row = (y - PLAY_SCREEN_HEIGHT // 4) // (LEVEL_SELECT_SIZE + MARGIN)
+
+        if -1 < column < START_LEVELS_COLUMNS and -1 < row < START_LEVELS_ROWS:
+            if button == arcade.MOUSE_BUTTON_LEFT:
+                level = 5 * (-row + 1) + column
+                game_view = GameView(level)
+                game_view.setup()
+                self.window.show_view(game_view)
+            if button == arcade.MOUSE_BUTTON_RIGHT:
+                level = 5 * (-row + 1) + column + 10
+                game_view = GameView(level)
+                game_view.setup()
+                self.window.show_view(game_view)
+
+
+class GameOverView(arcade.View):
+    def __init__(self):
+        super().__init__()
+        self.window.set_mouse_visible(True)
+
+    def on_draw(self):
+        arcade.draw_text(" GAME ",
+                         SCREEN_WIDTH / 2,
+                         3 * SCREEN_HEIGHT / 5,
+                         arcade.color.RED,
+                         100, bold=True, anchor_x="center", anchor_y="center")
+        arcade.draw_text(" OVER ",
+                         SCREEN_WIDTH / 2,
+                         2 * SCREEN_HEIGHT / 5,
+                         arcade.color.RED,
+                         100, bold=True, anchor_x="center", anchor_y="center")
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        game_view = LevelSelectView()
+        self.window.show_view(game_view)
+
+
+class GameView(arcade.View):
     """Main application"""
-    def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+    def __init__(self, level):
+        super().__init__()
 
         arcade.set_background_color(arcade.color.BLACK)
 
@@ -145,6 +227,7 @@ class MyGame(arcade.Window):
         self.board_sprite_list = None
         self.down_pressed = False
         self.down_timer = 0
+        self.window.set_mouse_visible(False)
 
         self.tile = None
         self.tile_x = 0
@@ -156,7 +239,7 @@ class MyGame(arcade.Window):
 
         self.line_clears = 0
         # Player can select the level they start on
-        self.start_level = int(input("What level do you want to start on? "))
+        self.start_level = level
         self.current_level = self.start_level
 
         self.score = 0
@@ -217,22 +300,27 @@ class MyGame(arcade.Window):
                             self.piece_clear += 1
                             break
                     else:
+                        arcade.play_sound(PIECE_HIT_SOUND)
                         break
                 if self.piece_clear == 4:
+                    arcade.play_sound(TETRIS_SOUND)
                     self.score += (self.current_level + 1) * 1200
                     # Each of these if statements makes it so that you
                     # Don't reach a new level until your line count is high enough
                     if self.line_clears // 10 >= self.start_level:
                         self.current_level = self.line_clears // 10
                 if self.piece_clear == 3:
+                    arcade.play_sound(LINE_CLEAR_SOUND)
                     self.score += (self.current_level + 1) * 300
                     if self.line_clears // 10 >= self.start_level:
                         self.current_level = self.line_clears // 10
                 if self.piece_clear == 2:
+                    arcade.play_sound(LINE_CLEAR_SOUND)
                     self.score += (self.current_level + 1) * 100
                     if self.line_clears // 10 >= self.start_level:
                         self.current_level = self.line_clears // 10
                 if self.piece_clear == 1:
+                    arcade.play_sound(LINE_CLEAR_SOUND)
                     self.score += (self.current_level + 1) * 40
                     if self.line_clears // 10 >= self.start_level:
                         self.current_level = self.line_clears // 10
@@ -280,6 +368,10 @@ class MyGame(arcade.Window):
         if self.down_pressed and self.down_timer > 0:
             if self.frame_count % 1 == 0:
                 self.fall()
+        if self.game_over:
+            arcade.play_sound(GAME_OVER_SOUND)
+            view = GameOverView()
+            self.window.show_view(view)
 
     def move_x(self, delta_x):
         """Move tile left or right"""
@@ -338,17 +430,15 @@ class MyGame(arcade.Window):
             for column in range(len(grid[0])):
                 if grid[row][column]:
                     color = colors[grid[row][column]]
-                    x = 2 * PLAY_SCREEN_WIDTH + (MARGIN + SIZE) * (column + offset_x) + MARGIN + \
-                        SIZE // 2 + 2 * (SIZE + MARGIN)
-                    y = PLAY_SCREEN_HEIGHT - (MARGIN + SIZE) * (row + offset_y + 1) + \
-                        MARGIN + SIZE // 2 - 14 * (SIZE + MARGIN)
+                    x = 2.5 * PLAY_SCREEN_WIDTH + (MARGIN + SIZE) * (column + offset_x - 1)
+                    y = PLAY_SCREEN_HEIGHT / 2 - (MARGIN + SIZE) * (row + offset_y + 1)
 
                     arcade.draw_rectangle_filled(x, y, SIZE, SIZE, color)
         arcade.draw_text("Next:",
-                         2 * PLAY_SCREEN_WIDTH + 2 * (SIZE + MARGIN) + MARGIN / 2,
-                         PLAY_SCREEN_HEIGHT - 13 * (SIZE + MARGIN) + MARGIN,
+                         2.5 * PLAY_SCREEN_WIDTH,
+                         PLAY_SCREEN_HEIGHT / 2,
                          arcade.color.WHITE,
-                         30, bold=True)
+                         SIZE, bold=True, anchor_x="center")
 
     def update_board(self):
         for row in range(len(self.board)):
@@ -372,51 +462,40 @@ class MyGame(arcade.Window):
         """
         # Line clear counter
         arcade.draw_text(f"Lines: {self.line_clears}",
-                         2 * SCREEN_WIDTH / 5,
-                         PLAY_SCREEN_HEIGHT - 3 * MARGIN + 2 * SIZE,
+                         SCREEN_WIDTH / 2,
+                         PLAY_SCREEN_HEIGHT - 2 * (MARGIN - SIZE),
                          arcade.color.WHITE,
-                         30, bold=True)
+                         SIZE, bold=True, anchor_x="center")
 
         # Level counter
         arcade.draw_text("Level:",
-                         2 * PLAY_SCREEN_WIDTH + 2 * (SIZE + MARGIN) + MARGIN / 2,
+                         2.5 * PLAY_SCREEN_WIDTH,
                          PLAY_SCREEN_HEIGHT - 6 * SIZE - 5 * MARGIN,
                          arcade.color.WHITE,
-                         30, bold=True)
+                         SIZE, bold=True, anchor_x="center")
         arcade.draw_text(f"{self.current_level}",
-                         2 * PLAY_SCREEN_WIDTH + 2 * (SIZE + MARGIN) + MARGIN / 2,
+                         2.5 * PLAY_SCREEN_WIDTH + 2 * SIZE,
                          PLAY_SCREEN_HEIGHT - 7 * SIZE - 7 * MARGIN,
                          arcade.color.WHITE,
-                         30, bold=True)
+                         SIZE, bold=True, anchor_x="right")
 
         # Scoreboard
         arcade.draw_text("Score:",
-                         2 * PLAY_SCREEN_WIDTH + 2 * (SIZE + MARGIN) + MARGIN / 2,
+                         2.5 * PLAY_SCREEN_WIDTH,
                          PLAY_SCREEN_HEIGHT - 3 * SIZE - 2 * MARGIN,
                          arcade.color.WHITE,
-                         30, bold=True)
+                         SIZE, bold=True, anchor_x="center")
         arcade.draw_text(f"{self.score}",
-                         2 * PLAY_SCREEN_WIDTH + 2 * (SIZE + MARGIN) + MARGIN / 2,
+                         2.5 * PLAY_SCREEN_WIDTH + 2 * SIZE,
                          PLAY_SCREEN_HEIGHT - 4 * SIZE - 4 * MARGIN,
                          arcade.color.WHITE,
-                         30, bold=True)
-
-        if self.game_over:
-            arcade.draw_text(" GAME",
-                             PLAY_SCREEN_WIDTH - SIZE - 2 * MARGIN,
-                             SCREEN_HEIGHT / 2,
-                             arcade.color.RED,
-                             100, bold=True)
-            arcade.draw_text(" OVER",
-                             PLAY_SCREEN_WIDTH - SIZE - 2 * MARGIN,
-                             SCREEN_HEIGHT / 2 - 150,
-                             arcade.color.RED,
-                             100, bold=True)
+                         SIZE, bold=True, anchor_x="right")
 
 
 def main():
-    game = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, "Tetris")
-    game.setup()
+    window = arcade.Window(SCREEN_WIDTH, SCREEN_HEIGHT, "Tetris")
+    start_view = LevelSelectView()
+    window.show_view(start_view)
     arcade.run()
 
 
